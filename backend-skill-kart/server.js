@@ -37,11 +37,28 @@ mongoose
 // Security headers
 app.use(helmet());
 
-// CORS configuration
+// CORS configuration (FIXED & PRODUCTION READY)
+const allowedOrigins = [
+  process.env.FRONTEND_URL,        // Netlify frontend
+  'http://localhost:3000',         // React local
+  'http://localhost:5173',         // Vite local
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (Postman, mobile apps)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
